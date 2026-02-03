@@ -42,6 +42,16 @@ def cmd_serve(args):
     uvicorn.run("api:app", host="0.0.0.0", port=args.port, reload=args.reload)
 
 
+def cmd_demo(args):
+    """Load sample data for demo mode."""
+    from database import init_db
+    from demo_data import load_demo_data
+    init_db()
+    count = load_demo_data()
+    print(f"\n✅ Demo mode: loaded {count} sample pain points into the database.")
+    print("   Run 'python cli.py serve' to start the API, then open the frontend.")
+
+
 def cmd_stats(args):
     from database import init_db, get_stats
     init_db()
@@ -86,12 +96,15 @@ def main():
     # stats
     sub.add_parser("stats", help="Show database stats")
 
+    # demo
+    sub.add_parser("demo", help="Load sample data (no API keys needed)")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(1)
 
-    {"scrape": cmd_scrape, "analyze": cmd_analyze, "run": cmd_run, "serve": cmd_serve, "stats": cmd_stats}[args.command](args)
+    {"scrape": cmd_scrape, "analyze": cmd_analyze, "run": cmd_run, "serve": cmd_serve, "stats": cmd_stats, "demo": cmd_demo}[args.command](args)
 
 
 if __name__ == "__main__":

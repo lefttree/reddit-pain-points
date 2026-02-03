@@ -1,8 +1,33 @@
+# Python
 venv/
-data/
-node_modules/
-dist/
-.env
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node
+node_modules/
+frontend/dist/
+
+# Data
+data/
+
+# Environment
+.env
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
