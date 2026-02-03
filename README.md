@@ -52,7 +52,7 @@ This tool **automates the discovery process**:
 No API keys needed — explore the dashboard with sample data:
 
 ```bash
-git clone https://github.com/seanli/reddit-pain-points.git
+git clone https://github.com/lefttree/reddit-pain-points.git
 cd reddit-pain-points
 
 # Backend
@@ -83,7 +83,7 @@ Open **http://localhost:5173** and explore!
 #### 2. Install & Configure
 
 ```bash
-git clone https://github.com/seanli/reddit-pain-points.git
+git clone https://github.com/lefttree/reddit-pain-points.git
 cd reddit-pain-points
 
 # Copy and fill in your credentials

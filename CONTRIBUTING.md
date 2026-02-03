@@ -53,13 +53,13 @@ Thanks for your interest in contributing! This guide will help you get started.
 
 ### Reporting Bugs
 
-- Use the [Bug Report](https://github.com/seanli/reddit-pain-points/issues/new?template=bug_report.md) issue template
+- Use the [Bug Report](https://github.com/lefttree/reddit-pain-points/issues/new?template=bug_report.md) issue template
 - Include steps to reproduce, expected behavior, and actual behavior
 - Include your Python/Node.js version and OS
 
 ### Suggesting Features
 
-- Use the [Feature Request](https://github.com/seanli/reddit-pain-points/issues/new?template=feature_request.md) issue template
+- Use the [Feature Request](https://github.com/lefttree/reddit-pain-points/issues/new?template=feature_request.md) issue template
 - Explain the use case and why it would be valuable
 
 ### Submitting Pull Requests
@@ -153,7 +153,7 @@ Currently, there are no automated tests (contributions welcome!). Before submitt
 
 ## 💬 Questions?
 
-Open a [Discussion](https://github.com/seanli/reddit-pain-points/discussions) or an issue. We're happy to help!
+Open a [Discussion](https://github.com/lefttree/reddit-pain-points/discussions) or an issue. We're happy to help!
 
 ## 📄 License
 
