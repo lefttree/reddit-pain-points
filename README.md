@@ -220,6 +220,50 @@ DATABASE_PATH=data/painpoints.db        # Database location
 4. Set redirect URI to `http://localhost:8080`
 5. Copy the client ID (under app name) and secret
 
+### Default Subreddits
+
+The scraper targets these 12 subreddits by default:
+
+| Subreddit | Focus |
+|-----------|-------|
+| r/SaaS | SaaS product discussions |
+| r/startups | Startup challenges & needs |
+| r/Entrepreneur | Business pain points |
+| r/smallbusiness | Small business struggles |
+| r/webdev | Web development frustrations |
+| r/programming | Developer tooling gaps |
+| r/productivity | Workflow & productivity issues |
+| r/selfhosted | Self-hosting needs & gaps |
+| r/sideproject | Side project builders' needs |
+| r/indiehackers | Indie maker challenges |
+| r/digitalnomad | Remote work pain points |
+| r/nocode | No-code/low-code limitations |
+
+Override via `.env`: `SUBREDDITS=SaaS,startups,yourSubreddit`
+
+> 💡 **Suggest new subreddits!** Open an [issue](https://github.com/lefttree/reddit-pain-points/issues/new?template=feature_request.md) or PR to add subreddits you think are valuable.
+
+### Pain Point Keywords
+
+The scraper searches for posts containing these 31 keywords/phrases:
+
+| Category | Keywords |
+|----------|----------|
+| **Wishes** | "i wish", "wish there was", "why isn't there", "doesn't exist" |
+| **Frustration** | "frustrated", "annoying", "so annoying", "drives me crazy", "hate when", "sucks", "terrible", "worst part" |
+| **Seeking** | "looking for", "need a tool", "anyone know of", "is there a", "recommend a", "help me find", "what do you use for", "looking for something", "can't find" |
+| **Alternatives** | "alternative to", "tired of" |
+| **Validation** | "would pay for", "shut up and take my money", "deal breaker" |
+| **Feedback** | "pain point", "struggle with", "feature request", "broken", "waste of time" |
+
+> 💡 **Suggest new keywords!** If you know domain-specific phrases that signal pain points, open an [issue](https://github.com/lefttree/reddit-pain-points/issues/new?template=feature_request.md) or PR.
+
+### Analysis Categories
+
+Discovered pain points are auto-categorized into:
+
+`Productivity` · `Developer Tools` · `Business` · `Communication` · `Finance` · `Health` · `Education` · `Marketing` · `Design` · `Data & Analytics` · `Automation` · `Other`
+
 ## Roadmap
 
 - **Scheduled Scraping** — Cron-based scraping with configurable intervals
