@@ -30,7 +30,8 @@ This tool **automates the discovery process**:
 ## Features
 
 - [x] 🔍 **Smart Scraping** — Targets 12+ subreddits with pain-point keyword matching
-- [x] 🤖 **AI Analysis** — Gemini extracts pain points, audiences, solutions, market estimates
+- [x] 🌐 **No Auth Scraping** — Public API mode, no Reddit credentials needed
+- [x] 🤖 **AI Analysis** — Claude or Gemini extracts pain points, audiences, solutions, market estimates
 - [x] 📊 **Opportunity Scoring** — Composite score based on engagement, severity, and market size
 - [x] 🏷️ **Auto-Categorization** — Productivity, Dev Tools, Business, Marketing, etc.
 - [x] 🔥 **Trending View** — See what's hot right now
@@ -71,14 +72,38 @@ npm run dev           # Start UI on :5173
 
 Open **http://localhost:5173** and explore!
 
-### Full Setup (With Reddit + Gemini)
+### Quick Start with Real Data (No Reddit Account Needed)
+
+Only need an LLM API key — scrape Reddit without credentials:
+
+```bash
+git clone https://github.com/lefttree/reddit-pain-points.git
+cd reddit-pain-points
+cp .env.example .env
+# Add your LLM key to .env (either one):
+#   ANTHROPIC_API_KEY=sk-ant-...   (Claude, recommended)
+#   GOOGLE_API_KEY=AIza...          (Gemini)
+
+cd backend
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+python cli.py scrape --public           # Scrape Reddit (no auth needed!)
+python cli.py analyze                   # Analyze with AI
+python cli.py serve &                   # Start API
+cd ../frontend && npm install && npm run dev  # Start UI
+```
+
+### Full Setup (With Reddit API + LLM)
 
 #### 1. Prerequisites
 
 - Python 3.11+
 - Node.js 18+
-- Reddit API credentials ([create app here](https://www.reddit.com/prefs/apps))
-- Google Gemini API key ([get one here](https://aistudio.google.com/apikey))
+- **LLM API key** — one of:
+  - [Anthropic/Claude API key](https://console.anthropic.com/settings/keys) (recommended)
+  - [Google Gemini API key](https://aistudio.google.com/apikey)
+- **Optional:** Reddit API credentials ([create app here](https://www.reddit.com/prefs/apps)) — for higher rate limits
 
 #### 2. Install & Configure
 
@@ -88,7 +113,7 @@ cd reddit-pain-points
 
 # Copy and fill in your credentials
 cp .env.example .env
-# Edit .env with your Reddit and Gemini API keys
+# Edit .env — at minimum set one LLM key
 
 # Install backend
 cd backend
@@ -108,11 +133,13 @@ cd ..
 cd backend
 
 # Scrape Reddit + analyze with AI (full pipeline)
-python cli.py run
+python cli.py run --public              # Public API (no Reddit credentials)
+python cli.py run                       # With Reddit API credentials
 
 # Or run steps separately:
-python cli.py scrape                    # Just scrape
-python cli.py analyze                   # Just analyze unanalyzed posts
+python cli.py scrape --public           # Scrape via public API
+python cli.py scrape                    # Scrape via Reddit API (needs credentials)
+python cli.py analyze                   # Analyze unanalyzed posts with LLM
 python cli.py scrape -s "SaaS,startups" # Specific subreddits
 python cli.py stats                     # View database stats
 ```
@@ -201,10 +228,14 @@ Auto-generated docs at **http://localhost:8000/docs** (Swagger UI).
 All config via `.env`:
 
 ```bash
-# Required
+# LLM API Key (at least one required for analysis)
+ANTHROPIC_API_KEY=sk-ant-...            # Claude (recommended)
+GOOGLE_API_KEY=AIza...                  # Gemini
+LLM_PROVIDER=auto                       # "auto" (default), "claude", or "gemini"
+
+# Reddit API (optional — use --public flag to skip)
 REDDIT_CLIENT_ID=your_client_id
 REDDIT_CLIENT_SECRET=your_client_secret
-GOOGLE_API_KEY=your_gemini_api_key
 
 # Optional
 SUBREDDITS=SaaS,startups,Entrepreneur  # Override target subreddits
@@ -276,9 +307,9 @@ Discovered pain points are auto-categorized into:
 
 ## Tech Stack
 
-- **Backend:** Python, FastAPI, PRAW, Google Gemini, SQLite
+- **Backend:** Python, FastAPI, PRAW (optional), SQLite
 - **Frontend:** React 19, Vite, Tailwind CSS
-- **Analysis:** Google Gemini 2.0 Flash
+- **Analysis:** Claude (Anthropic) or Gemini (Google) — auto-detected
 
 ## Contributing
 
