@@ -1,9 +1,8 @@
-"""LLM-powered pain point analyzer using Google Gemini."""
+"""LLM-powered pain point analyzer. Supports Gemini and Claude."""
 import json
 import logging
 import time
-from google import genai
-from config import GOOGLE_API_KEY, CATEGORIES
+from config import GOOGLE_API_KEY, ANTHROPIC_API_KEY, LLM_PROVIDER, CATEGORIES
 from database import get_unanalyzed_posts, insert_analysis
 
 logger = logging.getLogger(__name__)
@@ -37,18 +36,69 @@ If the post doesn't contain a clear pain point, set opportunity_score to 10 or b
 """
 
 
-def get_gemini_client():
-    if not GOOGLE_API_KEY:
-        raise ValueError("GOOGLE_API_KEY not configured in .env")
-    return genai.Client(api_key=GOOGLE_API_KEY)
+def get_provider():
+    """Determine which LLM provider to use."""
+    if LLM_PROVIDER == "claude" and ANTHROPIC_API_KEY:
+        return "claude"
+    elif LLM_PROVIDER == "gemini" and GOOGLE_API_KEY:
+        return "gemini"
+    elif LLM_PROVIDER == "auto":
+        if ANTHROPIC_API_KEY:
+            return "claude"
+        elif GOOGLE_API_KEY:
+            return "gemini"
+    raise ValueError("No LLM API key configured. Set ANTHROPIC_API_KEY or GOOGLE_API_KEY in .env")
 
 
-def analyze_post(client, post: dict) -> dict:
+def analyze_post_claude(client, post: dict) -> dict:
+    """Analyze a single post with Claude."""
+    prompt = ANALYSIS_PROMPT.format(
+        subreddit=post["subreddit"],
+        title=post["title"],
+        body=post["body"][:3000],
+        post_type=post["post_type"],
+        score=post["score"],
+        num_comments=post["num_comments"],
+        categories=", ".join(CATEGORIES),
+    )
+
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        raw_text = message.content[0].text.strip()
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("\n", 1)[1] if "\n" in raw_text else raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+        raw_text = raw_text.strip()
+
+        analysis = json.loads(raw_text)
+        analysis["raw_llm_response"] = message.content[0].text
+        return analysis
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse Claude response for post {post['id']}: {e}")
+        return {
+            "pain_point_summary": "Analysis failed - could not parse LLM response",
+            "category": "Other", "severity": 1, "affected_audience": "Unknown",
+            "potential_solutions": [], "market_size_estimate": "Unknown",
+            "existing_solutions": [], "opportunity_score": 0,
+        }
+    except Exception as e:
+        logger.error(f"Claude analysis failed for post {post['id']}: {e}")
+        return None
+
+
+def analyze_post_gemini(client, post: dict) -> dict:
     """Analyze a single post with Gemini."""
     prompt = ANALYSIS_PROMPT.format(
         subreddit=post["subreddit"],
         title=post["title"],
-        body=post["body"][:3000],  # Limit context
+        body=post["body"][:3000],
         post_type=post["post_type"],
         score=post["score"],
         num_comments=post["num_comments"],
@@ -62,7 +112,6 @@ def analyze_post(client, post: dict) -> dict:
         )
 
         raw_text = response.text.strip()
-        # Clean up markdown code blocks if present
         if raw_text.startswith("```"):
             raw_text = raw_text.split("\n", 1)[1] if "\n" in raw_text else raw_text[3:]
         if raw_text.endswith("```"):
@@ -74,21 +123,15 @@ def analyze_post(client, post: dict) -> dict:
         return analysis
 
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse LLM response for post {post['id']}: {e}")
-        logger.debug(f"Raw response: {response.text if 'response' in dir() else 'N/A'}")
+        logger.error(f"Failed to parse Gemini response for post {post['id']}: {e}")
         return {
             "pain_point_summary": "Analysis failed - could not parse LLM response",
-            "category": "Other",
-            "severity": 1,
-            "affected_audience": "Unknown",
-            "potential_solutions": [],
-            "market_size_estimate": "Unknown",
-            "existing_solutions": [],
-            "opportunity_score": 0,
-            "raw_llm_response": response.text if 'response' in dir() else "",
+            "category": "Other", "severity": 1, "affected_audience": "Unknown",
+            "potential_solutions": [], "market_size_estimate": "Unknown",
+            "existing_solutions": [], "opportunity_score": 0,
         }
     except Exception as e:
-        logger.error(f"LLM analysis failed for post {post['id']}: {e}")
+        logger.error(f"Gemini analysis failed for post {post['id']}: {e}")
         return None
 
 
@@ -99,12 +142,23 @@ def run_analysis(batch_size: int = 20) -> dict:
         logger.info("No unanalyzed posts found.")
         return {"analyzed": 0, "failed": 0}
 
-    client = get_gemini_client()
+    provider = get_provider()
+    logger.info(f"Using LLM provider: {provider}")
+
+    if provider == "claude":
+        import anthropic
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        analyze_fn = analyze_post_claude
+    else:
+        from google import genai
+        client = genai.Client(api_key=GOOGLE_API_KEY)
+        analyze_fn = analyze_post_gemini
+
     stats = {"analyzed": 0, "failed": 0}
 
     for post in posts:
         logger.info(f"Analyzing: {post['title'][:60]}...")
-        analysis = analyze_post(client, post)
+        analysis = analyze_fn(client, post)
 
         if analysis:
             insert_analysis(post["id"], analysis)
@@ -112,8 +166,7 @@ def run_analysis(batch_size: int = 20) -> dict:
         else:
             stats["failed"] += 1
 
-        # Rate limiting - be gentle with the API
-        time.sleep(1)
+        time.sleep(0.5)
 
     logger.info(f"Analysis complete: {stats['analyzed']} analyzed, {stats['failed']} failed")
     return stats

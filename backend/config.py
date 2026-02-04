@@ -14,6 +14,8 @@ REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "pain-point-discovery:v1.0")
 
 # LLM
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "auto")  # "gemini", "claude", or "auto"
 
 # Database
 DATABASE_PATH = os.getenv("DATABASE_PATH", str(PROJECT_ROOT / "data" / "painpoints.db"))

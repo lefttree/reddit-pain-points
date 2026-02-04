@@ -13,10 +13,14 @@ logging.basicConfig(
 
 def cmd_scrape(args):
     from database import init_db
-    from scraper import run_scrape
     init_db()
     subreddits = args.subreddits.split(",") if args.subreddits else None
-    result = run_scrape(subreddits=subreddits, limit=args.limit)
+    if args.public:
+        from scraper_public import scrape_all_public
+        result = scrape_all_public(subreddits=subreddits, limit=args.limit)
+    else:
+        from scraper import run_scrape
+        result = run_scrape(subreddits=subreddits, limit=args.limit)
     print(f"\n✅ Scrape complete: {result}")
 
 
@@ -77,6 +81,7 @@ def main():
     p_scrape = sub.add_parser("scrape", help="Scrape Reddit for pain points")
     p_scrape.add_argument("--subreddits", "-s", help="Comma-separated subreddit list")
     p_scrape.add_argument("--limit", "-l", type=int, default=50, help="Posts per subreddit")
+    p_scrape.add_argument("--public", action="store_true", help="Use public API (no Reddit credentials needed)")
 
     # analyze
     p_analyze = sub.add_parser("analyze", help="Analyze unanalyzed posts with LLM")
@@ -87,6 +92,7 @@ def main():
     p_run.add_argument("--subreddits", "-s", help="Comma-separated subreddit list")
     p_run.add_argument("--limit", "-l", type=int, default=50, help="Posts per subreddit")
     p_run.add_argument("--batch-size", "-b", type=int, default=20, help="Batch size")
+    p_run.add_argument("--public", action="store_true", help="Use public API (no Reddit credentials needed)")
 
     # serve
     p_serve = sub.add_parser("serve", help="Start the API server")
